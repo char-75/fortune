@@ -217,6 +217,7 @@ body { margin: 0; }
 .sj-pf-foot { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: var(--cds-gap-sm); flex-wrap: wrap; }
 .sj-primary { background: var(--color-fg) !important; color: var(--color-bg) !important; border-color: var(--color-fg) !important; padding: 0 var(--cds-pad-lg) !important; }
 .sj-datecard { display: grid; gap: var(--cds-gap-md); }
+.sj-datecard[hidden] { display: none !important; }
 .sj-dt-top { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--cds-gap-md); flex-wrap: wrap; }
 .sj-dt-big { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); line-height: 1.2; }
 .sj-dt-ctl { display: flex; gap: var(--cds-gap-xs); align-items: stretch; flex: 1 1 18rem; max-width: 26rem; }
@@ -637,7 +638,7 @@ body { margin: 0; }
     </div>
   </section>
 
-  <section class="sj-card sj-datecard" id="datecard" aria-label="운세 날짜">
+  <section class="sj-card sj-datecard" id="datecard" aria-label="운세 날짜" hidden>
     <div class="sj-dt-top">
       <div>
         <p class="sj-cap sj-muted">운세 볼 날짜</p>
@@ -781,12 +782,15 @@ body { margin: 0; }
 /* 대시보드 API 대신 쓰는 작은 어댑터: 데이터는 페이지에 내장, 입력값은 이 브라우저에만 저장 */
 window.dash = (() => {
   const DATA = JSON.parse(document.getElementById('sj-data').textContent);
-  const DEFAULTS = { birth: null, birthCal: 'solar', birthLeap: false, birthTime: null, timeUnknown: false, gender: '남', date: null,
+  const DEFAULTS = { profileDone: false, dateAt: null, birth: null, birthCal: 'solar', birthLeap: false, birthTime: null, timeUnknown: false, gender: '남', date: null,
     rhythmDate: null, rhythm: [], rhythmMoney: [], rhythmStock: [], rhythmExam: [], rhythmLove: [], rhythmWork: [], wake: '07:00', sleep: '23:30' };
   const KEY = 'todays-fortune-v1';
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
-  delete saved.date; // 운세 날짜는 열 때마다 오늘로
+  const RESET_MS = 30 * 60 * 1000; // 고른 날짜는 30분 뒤 오늘로 초기화
+  const today = () => { const d = new Date(); const z = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`; };
+  if (!(saved.date && saved.dateAt && Date.now() - saved.dateAt < RESET_MS)) { delete saved.date; delete saved.dateAt; }
+  if (saved.birth && saved.profileDone === undefined) saved.profileDone = true; // 예전에 저장한 정보는 입력 완료로 본다
   let params = { ...DEFAULTS, ...saved };
   const subs = [];
   let queued = false;
@@ -798,9 +802,16 @@ window.dash = (() => {
     data: (id) => (DATA[id] ? { status: 'ok', data: DATA[id], refreshing: false, meta: [] } : { status: 'missing', data: [] }),
     params: () => params,
     setParams(o) {
+      if ('date' in o && o.date !== params.date) o = { ...o, dateAt: o.date && o.date !== today() ? Date.now() : null };
       params = { ...params, ...o };
-      try { const { date, ...keep } = params; localStorage.setItem(KEY, JSON.stringify(keep)); } catch (e) { /* 저장 불가 환경 */ }
+      try { localStorage.setItem(KEY, JSON.stringify(params)); } catch (e) { /* 저장 불가 환경 */ }
       queue();
+    },
+    resetDateIfStale() {
+      const t = today();
+      const stale = params.dateAt ? Date.now() - params.dateAt >= RESET_MS : params.date && params.date !== t;
+      if (stale && params.date !== t) this.setParams({ date: t });
+      else if (stale) { params = { ...params, dateAt: null }; }
     },
     resetParams() { params = { ...DEFAULTS }; queue(); },
     onData(f) { subs.push(f); try { f(); } catch (e) { console.error(e); } },
@@ -1436,7 +1447,14 @@ window.dash = (() => {
     t.setAttribute('aria-expanded', String(open));
   };
   $('#pf-toggle').addEventListener('click', () => setPf(!pfOpen));
-  $('#pf-done').addEventListener('click', () => { setPf(false); $('#datecard').scrollIntoView({ block: 'nearest' }); });
+  $('#pf-done').addEventListener('click', () => {
+    setPf(false);
+    if (!dash.params().profileDone) dash.setParams({ profileDone: true, date: todayStr() });
+    requestAnimationFrame(() => requestAnimationFrame(() => $('#datecard').scrollIntoView({ block: 'start', behavior: 'smooth' })));
+  });
+  /* 고른 날짜는 30분이 지나면 오늘로 돌아간다 (탭으로 돌아왔을 때도 확인) */
+  setInterval(() => dash.resetDateIfStale(), 20000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) dash.resetDateIfStale(); });
 
   /* ---------- 하루 리듬 상태 ---------- */
   const RCATS = [
@@ -1532,7 +1550,7 @@ window.dash = (() => {
 
     // 내 정보 요약
     const complete = !!birth.solar && (p.timeUnknown || hasTime);
-    if (pfOpen === null) setPf(!complete);
+    if (pfOpen === null) setPf(!complete || !p.profileDone);
     if (birth.none || birth.err) { if (!pfOpen) setPf(true); }
     const badge = $('#pf-badge');
     if (birth.solar && pl) {
@@ -1550,7 +1568,7 @@ window.dash = (() => {
       $('#pf-detail').textContent = '생년월일과 태어난 시간, 성별로 사주를 세웁니다.';
     }
     $('#pf-done').disabled = !birth.solar;
-    $('#pf-saved').textContent = complete ? '이 화면에 반영됐어요. 완료를 누르면 접힙니다. (페이지를 새로 열면 초기화될 수 있어요)' : '입력하는 즉시 이 화면에 반영돼요.';
+    $('#pf-saved').textContent = !complete ? '입력하는 즉시 이 화면에 반영돼요.' : p.profileDone ? '이 브라우저에 저장됐어요. 완료를 누르면 접힙니다.' : '다 넣었으면 완료를 눌러 주세요. 운세 볼 날짜가 나타나요.';
   }
 
   function drawDateCard(p, L, week) {
@@ -2110,7 +2128,15 @@ window.dash = (() => {
 
     const result = $('#sj-result'), empty = $('#sj-empty');
     const showEmpty = (...kids) => { result.hidden = true; empty.hidden = false; empty.replaceChildren(...kids); };
+    const ready = !!birth.solar && !!p.profileDone;
+    $('#datecard').hidden = !ready;
 
+    if (!ready && birth.solar) {
+      showEmpty('정보를 다 넣었으면 위의 완료를 눌러 주세요. 운세 볼 날짜와 오늘의 운세가 나타나요.');
+      $('#sj-lead').textContent = '내 정보를 한 번 입력해 두면, 날짜만 골라 그날의 운세와 하루 리듬을 볼 수 있어요.';
+      rhythmModel = null;
+      return;
+    }
     if (birth.none || birth.err || birth.pending) {
       drawDateCard(p, L, null);
       showEmpty(birth.pending ? '음력 달력을 불러오는 중이에요.' : '위의 내 정보에 생년월일을 입력하면 운세가 나타납니다.');
