@@ -696,7 +696,7 @@ img, svg, canvas { max-width: 100%; }
 
   <div class="sj-result" id="sj-result" hidden>
     <nav class="sj-nav" aria-label="바로가기">
-      <a href="#today">종합 운세</a><a href="#f-total">총운</a><a href="#lucky">행운 포인트</a><a href="#fortunes">분야별 운세</a><a href="#rhythm">하루 리듬</a><a href="#natal">나의 사주</a><a href="#ziwei">자미두수 명반</a>
+      <a href="#today">종합 운세</a><a href="#f-total">총운</a><a href="#fortunes">분야별 운세</a><a href="#rhythm">하루 리듬</a><a href="#natal">나의 사주</a><a href="#ziwei">자미두수 명반</a>
     </nav>
 
     <section class="sj-card sj-hero sj-sec" id="today">
@@ -719,11 +719,6 @@ img, svg, canvas { max-width: 100%; }
     </section>
 
     <article class="sj-card sj-fc sj-fc-wide sj-sec" id="f-total" data-cat="total"></article>
-
-    <section class="sj-card sj-sec" id="lucky">
-      <h2 class="sj-sec-title">행운 포인트</h2>
-      <div id="lucky-body"></div>
-    </section>
 
     <section class="sj-sec" id="fortunes">
       <h2 class="sj-sec-title">분야별 운세</h2>
@@ -2225,7 +2220,6 @@ window.dash = (() => {
     const remain = null;
     drawHero(p, dy, scores, overall, data, { saju: overallOf(sajuScores), zw: zi ? overallOf(zi.scores) : null }, remain);
     drawFortunes(p, dy, scores, data, zi, remain);
-    drawLucky(a, data);
     drawAllRhythm();
     drawNatal(p, birth, pl, a, data);
     drawZiwei(p, zw, zi ? zi.zd : null, zi ? overallOf(zi.scores) : null, data);
