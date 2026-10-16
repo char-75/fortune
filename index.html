@@ -606,6 +606,13 @@ img, svg, canvas { max-width: 100%; }
   .sj-dt-ctl { flex-wrap: wrap; }
   .sj-empty { padding: 24px 16px; }
 }
+
+/* ===== 스크롤 등장 애니메이션 ===== */
+@media (prefers-reduced-motion: no-preference) {
+  .sj-rv { opacity: 0; transform: translateY(36px) scale(.985); }
+  .sj-rv.sj-rv-in { opacity: 1; transform: none; transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.16,.84,.24,1); transition-delay: var(--rv-d, 0ms); }
+  .sj-rv.sj-rv-done { transition: none; }
+}
 </style>
 </head>
 <body>
@@ -2225,12 +2232,30 @@ window.dash = (() => {
 
     if (!animated) {
       animated = true;
-      $$('#sj-result > *').forEach((el, i) => { el.classList.add('sj-in'); el.style.animationDelay = `${i * 50}ms`; });
       const named = document.getElementById(location.hash.slice(1));
       if (named && result.contains(named)) named.scrollIntoView();
     }
   });
 
+
+  /* 스크롤 등장: 카드가 화면에 들어올 때 한 번 아래에서 떠오른다 */
+  (() => {
+    if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const els = $$('.sj-card, .sj-empty');
+    const io = new IntersectionObserver((entries) => {
+      let n = 0;
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        const el = en.target;
+        io.unobserve(el);
+        el.style.setProperty('--rv-d', `${Math.min(n++, 4) * 80}ms`);
+        el.classList.add('sj-rv-in');
+        // 끝나면 transform을 걷어 내 유리 블러가 그대로 보이게
+        setTimeout(() => { el.classList.add('sj-rv-done'); el.classList.remove('sj-rv'); }, 1400);
+      });
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0 });
+    els.forEach((el) => { el.classList.add('sj-rv'); io.observe(el); });
+  })();
   /* 고정 메뉴: 지금 보고 있는 섹션을 표시하고, 메뉴 안에서 그 항목이 보이게 스크롤 */
   const navLinks = $$('.sj-result > .sj-nav a');
   const navTargets = navLinks.map((l) => document.getElementById(l.getAttribute('href').slice(1))).filter(Boolean);
