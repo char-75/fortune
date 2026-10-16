@@ -812,6 +812,9 @@ img, svg, canvas { max-width: 100%; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script>
 /* 대시보드 API 대신 쓰는 작은 어댑터: 데이터는 페이지에 내장, 입력값은 이 브라우저에만 저장 */
+/* 열 때는 항상 맨 위에서: 주소의 #섹션과 브라우저의 스크롤 복원을 쓰지 않는다 (카톡 인앱 브라우저 등) */
+try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) { /* 무시 */ }
+if (location.hash) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* 무시 */ } }
 window.dash = (() => {
   const DATA = JSON.parse(document.getElementById('sj-data').textContent);
   const DEFAULTS = { profileDone: false, dateAt: null, birth: null, birthCal: 'solar', birthLeap: false, birthTime: null, timeUnknown: false, gender: '남', date: null,
@@ -2226,8 +2229,6 @@ window.dash = (() => {
 
     if (!animated) {
       animated = true;
-      const named = document.getElementById(location.hash.slice(1));
-      if (named && result.contains(named)) named.scrollIntoView();
     }
   });
 
@@ -2298,7 +2299,6 @@ window.dash = (() => {
     if (!el) return;
     e.preventDefault();
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    dash.setLink(el.id);
   }));
 })();
 </script>
