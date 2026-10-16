@@ -1,3 +1,12 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0906">
+<meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>오늘의 운세</title>
 <meta name="description" content="사주와 자미두수로 보는 오늘의 운세와 하루 리듬">
 <style>
@@ -578,7 +587,28 @@ body { margin: 0; }
 .sj-result > .sj-nav a.on { background: linear-gradient(180deg, var(--sj-gold-hi), var(--sj-gold)) !important; color: #2c1d03 !important; font-weight: 700; }
 .sj-result > .sj-nav a:not(.on):hover { background: rgba(255,255,255,.08) !important; color: var(--color-fg) !important; }
 .sj-sec, .sj-fc { scroll-margin-top: 76px; }
+
+/* ===== 모바일 최적화 ===== */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { overflow-x: clip; }
+img, svg, canvas { max-width: 100%; }
+.sj { padding-left: max(clamp(16px, 5vw, 64px), env(safe-area-inset-left)); padding-right: max(clamp(16px, 5vw, 64px), env(safe-area-inset-right)); }
+.sj-pf-sum { flex-wrap: nowrap; }
+.sj-pf-who { flex: 1 1 auto; }
+.sj-pf-sum > .sj-ctl { flex: none; }
+@media (max-width: 40rem) {
+  .sj { padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: max(40px, env(safe-area-inset-bottom)); }
+  .sj-card { padding: 18px 16px !important; border-radius: 20px !important; }
+  .sj-result { gap: 20px; }
+  .sj-title { font-size: 34px !important; }
+  .sj-pf-badge { flex: none; }
+  .sj-dt-ctl { flex-wrap: wrap; }
+  .sj-empty { padding: 24px 16px; }
+}
 </style>
+</head>
+<body>
 <div id="dash-root">
 <div class="sj">
   <div class="sj-bg" aria-hidden="true" id="sj-coins"></div>
@@ -1187,6 +1217,11 @@ window.dash = (() => {
 </script>
 <script>(() => {
   const S = window.Saju;
+  /* replaceChildren/append에 null·false가 섞여도 'null' 글자가 찍히지 않게 */
+  ['replaceChildren', 'append'].forEach((fn) => {
+    const orig = Element.prototype[fn];
+    Element.prototype[fn] = function (...kids) { return orig.apply(this, kids.filter((k) => k !== null && k !== undefined && k !== false)); };
+  });
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const WEEK = '일월화수목금토';
@@ -2510,3 +2545,5 @@ void main(){
   document.addEventListener('scroll', () => { if (!host.isConnected) return; queuePlace(); updateTargets(); if (reduce) { coins.forEach((c) => { if (c.g) { c.a = c.target; render(c, 2); } }); } else kick(); }, { capture: true, passive: true });
 })();
 </script>
+</body>
+</html>
