@@ -2473,9 +2473,9 @@ void main(){
     const s = scrolled();
     const Hh = host.clientHeight || window.innerHeight;
     coins.forEach((c) => {
-      const span = Hh + c.size;
       let y = c.y0 - (reduce ? 0 : s * c.speed);
-      y = ((((y + c.size) % span) + span) % span) - c.size; // 화면 밖으로 나가면 반대편에서 다시 등장
+      // 한 번 지나간 금화는 다시 나타나지 않는다(반복 없음)
+      c.outer.style.visibility = y < -c.size || y > Hh ? 'hidden' : '';
       c.outer.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`;
     });
   }
