@@ -9,3 +9,7 @@
 
 서버 없이 `index.html` 하나로 동작하며, 모든 계산은 브라우저에서 이루어집니다.
 운세는 재미로 보는 참고 자료이며, 주식운은 투자 판단의 근거가 아닙니다.
+
+## 수정 방법
+
+`src/` 안의 조각(page.html, saju.js, ziwei.js, app.js, coins.js, data.json)을 고친 뒤 `python3 build.py`를 실행하면 `index.html` 한 파일로 합쳐집니다.
