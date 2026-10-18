@@ -2256,8 +2256,8 @@ window.dash = (() => {
       borrowed ? h('p', { class: 'sj-cap sj-muted', text: main.length ? `주성이 없는 빈 궁이라 맞은편 ${c.palaces[(b + 6) % 12].name}의 ${main.join('·')}을(를) 빌려 봅니다.` : '주성이 없는 빈 궁입니다.' }) : null,
       ...main.map((n) => h('p', {}, h('b', { text: `${n} ` }), cite('span', 'zwstars', cat.name, `id=${n}`, (starRow(data, n) || {})[cat.name] || ''))),
       dailyHua.length ? dailyHua.map((x) => h('p', {}, h('span', { class: `sj-hua h${x.hua}`, text: `유일 ${x.star}${Z.HUA[x.hua]}` }), ' ', cite('span', 'zwhua', '내용', `id=h${x.hua}-${cat.code}`, (rowById(data.zwhua, `h${x.hua}-${cat.code}`) || {})['내용'] || ''))) : null,
-      bigHua.length ? h('p', { class: 'sj-cap sj-muted' }, '큰 흐름 ', ...bigHua.map((x) => h('span', { class: `sj-hua o h${x.hua}`, text: `${x.src} ${x.star}${Z.HUA[x.hua]}` })),
-        bigHua.some((x) => x.hua === 3) ? ' — 올해·대한의 화기가 걸려 있어 이 분야는 무리한 확장보다 지키는 쪽이 좋아요.' : ' — 올해·대한의 좋은 사화가 이 분야를 받쳐 줍니다.') : null,
+      bigHua.length ? h('p', { class: 'sj-cap sj-muted' }, '큰 흐름 ', ...bigHua.flatMap((x, i) => [i ? ' ' : null, h('span', { class: `sj-hua o h${x.hua}`, text: `${x.src} ${x.star}${Z.HUA[x.hua]}` })]),
+        bigHua.some((x) => x.hua === 3) ? ' — 올해·대한의 화기가 걸려 있어 이 분야는 무리한 확장보다 지키는 쪽이 좋아요.' : ` — ${[...new Set(bigHua.map((x) => x.src === '유년' ? '올해' : '대한'))].join('·')}의 좋은 사화가 이 분야를 받쳐 줍니다.`) : null,
       good.length || bad.length || natal.length ? h('p', { class: 'sj-cap sj-muted' },
         good.length ? `길성 ${good.join('·')}` : '', good.length && bad.length ? ' · ' : '', bad.length ? `살성 ${bad.join('·')}` : '',
         natal.length ? `${good.length || bad.length ? ' · ' : ''}생년 ${natal.map((n) => n + Z.HUA[c.natalHua[n]]).join('·')}` : '') : null);
