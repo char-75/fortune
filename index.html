@@ -648,6 +648,10 @@ img, svg, canvas { max-width: 100%; }
   .sj-rh-more { display: block; justify-self: start; }
   #rh-total:not(.rh-open) #rh-blocks { display: none; }
 }
+
+/* 고정 메뉴·탭 아래로 콘텐츠 맨 위가 오도록 스크롤 여백 */
+.sj-result [id], .sj-result .sj-fc { scroll-margin-top: 96px; }
+@media (max-width: 40rem) { .sj-result [id], .sj-result .sj-fc { scroll-margin-top: 80px; } }
 </style>
 <script>
 /* Microsoft Clarity — CLARITY_ID에 프로젝트 ID를 넣으면 켜진다(비워 두면 아무것도 불러오지 않음) */
@@ -1921,7 +1925,8 @@ window.dash = (() => {
         foldState[c.code] = next; card.dataset.open = String(next);
         foldBtn.textContent = next ? '접기 ▴' : '자세히 보기 ▾'; foldBtn.setAttribute('aria-expanded', String(next));
         window.sjTrack(`fold_${c.code}_${next ? 'open' : 'close'}`);
-        if (!next && card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: 'start' });
+        // 펼치든 접든 카드 맨 위가 고정 메뉴 바로 아래에 오도록
+        card.scrollIntoView({ block: 'start', behavior: 'smooth' });
       });
       card.classList.toggle('sj-fold', foldable);
       if (foldable) card.dataset.open = String(open);
@@ -2487,12 +2492,13 @@ window.dash = (() => {
   $$('[data-tab-btn]').forEach((b) => b.addEventListener('click', () => {
     const t = b.dataset.tabBtn;
     const result = $('#sj-result');
-    if (result.dataset.tab === t) return;
+    const pin = () => window.scrollTo({ top: result.getBoundingClientRect().top + window.scrollY - 8, behavior: 'smooth' });
+    if (result.dataset.tab === t) { pin(); return; }
     result.dataset.tab = t;
     $$('[data-tab-btn]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
     window.sjTrack(`tab_${t}`);
-    const top = result.getBoundingClientRect().top + window.scrollY - 8;
-    if (window.scrollY > top) window.scrollTo({ top });
+    // 탭 바가 화면 맨 위에 붙고, 콘텐츠가 그 바로 아래에서 시작하도록 스크롤
+    pin();
     if (t === 'rhythm' && rhythmModel) drawAllRhythm();
     if (window.sjRimUpdate) window.sjRimUpdate();
   }));

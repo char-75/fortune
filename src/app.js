@@ -522,7 +522,8 @@
         foldState[c.code] = next; card.dataset.open = String(next);
         foldBtn.textContent = next ? '접기 ▴' : '자세히 보기 ▾'; foldBtn.setAttribute('aria-expanded', String(next));
         window.sjTrack(`fold_${c.code}_${next ? 'open' : 'close'}`);
-        if (!next && card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: 'start' });
+        // 펼치든 접든 카드 맨 위가 고정 메뉴 바로 아래에 오도록
+        card.scrollIntoView({ block: 'start', behavior: 'smooth' });
       });
       card.classList.toggle('sj-fold', foldable);
       if (foldable) card.dataset.open = String(open);
@@ -1088,12 +1089,13 @@
   $$('[data-tab-btn]').forEach((b) => b.addEventListener('click', () => {
     const t = b.dataset.tabBtn;
     const result = $('#sj-result');
-    if (result.dataset.tab === t) return;
+    const pin = () => window.scrollTo({ top: result.getBoundingClientRect().top + window.scrollY - 8, behavior: 'smooth' });
+    if (result.dataset.tab === t) { pin(); return; }
     result.dataset.tab = t;
     $$('[data-tab-btn]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
     window.sjTrack(`tab_${t}`);
-    const top = result.getBoundingClientRect().top + window.scrollY - 8;
-    if (window.scrollY > top) window.scrollTo({ top });
+    // 탭 바가 화면 맨 위에 붙고, 콘텐츠가 그 바로 아래에서 시작하도록 스크롤
+    pin();
     if (t === 'rhythm' && rhythmModel) drawAllRhythm();
     if (window.sjRimUpdate) window.sjRimUpdate();
   }));

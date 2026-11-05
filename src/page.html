@@ -648,6 +648,10 @@ img, svg, canvas { max-width: 100%; }
   .sj-rh-more { display: block; justify-self: start; }
   #rh-total:not(.rh-open) #rh-blocks { display: none; }
 }
+
+/* 고정 메뉴·탭 아래로 콘텐츠 맨 위가 오도록 스크롤 여백 */
+.sj-result [id], .sj-result .sj-fc { scroll-margin-top: 96px; }
+@media (max-width: 40rem) { .sj-result [id], .sj-result .sj-fc { scroll-margin-top: 80px; } }
 </style>
 <script>
 /* Microsoft Clarity — CLARITY_ID에 프로젝트 ID를 넣으면 켜진다(비워 두면 아무것도 불러오지 않음) */
