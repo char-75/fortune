@@ -215,7 +215,7 @@
   const datePicker = makePicker($('#pk-date'), {
     label: '운세 확인 날짜', minY: 1901, maxY: 2100, defaultBack: 0,
     mode: () => 'solar', value: () => ({ date: dash.params().date || null, leap: false }), lunar: lunarTable,
-    pick: (date) => dash.setParams({ date }),
+    pick: (date) => { window.sjTrack('date_pick'); dash.setParams({ date }); },
   });
 
   $$('[data-cal]').forEach((b) => b.addEventListener('click', () => {
@@ -248,11 +248,12 @@
   const lifeOf = (p) => ({ wake: S.isTime(p.wake) ? p.wake : '07:00', sleep: S.isTime(p.sleep) ? p.sleep : '23:30' });
   $$('[data-g]').forEach((b) => b.addEventListener('click', () => dash.setParams({ gender: b.dataset.g })));
   $$('[data-step]').forEach((b) => b.addEventListener('click', () => {
+    window.sjTrack('date_step');
     const cur = S.validDate(dash.params().date) ? dash.params().date : todayStr();
     const next = S.addDays(cur, Number(b.dataset.step));
     if (next >= '1901-01-01' && next <= '2100-12-31') dash.setParams({ date: next });
   }));
-  $('#btn-today').addEventListener('click', () => dash.setParams({ date: todayStr() }));
+  $('#btn-today').addEventListener('click', () => { window.sjTrack('date_today'); dash.setParams({ date: todayStr() }); });
 
 
   /* ---------- 내 정보 접기/펴기 ---------- */
@@ -266,6 +267,7 @@
   };
   $('#pf-toggle').addEventListener('click', () => setPf(!pfOpen));
   $('#pf-done').addEventListener('click', () => {
+    window.sjTrack(dash.params().profileDone ? 'profile_edit_done' : 'profile_done');
     setPf(false);
     if (!dash.params().profileDone) dash.setParams({ profileDone: true, date: todayStr() });
     requestAnimationFrame(() => requestAnimationFrame(() => $('#datecard').scrollIntoView({ block: 'start', behavior: 'smooth' })));
@@ -293,6 +295,7 @@
     return [0, 1, 2, 3, 4, 5].map((i) => (typeof list[i] === 'number' ? list[i] : -1));
   };
   const commitEdits = (code, edits) => {
+    window.sjTrack(`rhythm_edit_${code}`);
     const rc = RCATS.find((r) => r.code === code);
     const p = dash.params();
     const next = { rhythmDate: p.date, [rc.param]: edits.map((v) => (v >= 0 ? Math.round(v) : -1)) };
@@ -409,7 +412,7 @@
         h('span', { class: 'n', text: dd }),
         h('span', { class: 'g', text: S.ganjiK(di) }),
         sc !== null && sc !== undefined ? h('span', { class: 'sc' }, h('i', { class: sc >= 70 ? 'hi' : sc < 55 ? 'lo' : '' }), sc) : null);
-      b.addEventListener('click', () => dash.setParams({ date: d }));
+      b.addEventListener('click', () => { window.sjTrack('date_week'); dash.setParams({ date: d }); });
       return b;
     }));
   }
@@ -969,7 +972,7 @@
   function zwCenter(p, zw, zd, zwOverall) {
     const c = zw.chart, lb = zw.lunar;
     const yang = c.yStem % 2 === 0;
-    return h('div', { class: 'sj-zw-center', style: 'grid-row:2 / span 2;grid-column:2 / span 2' },
+    return h('div', { class: 'sj-zw-center', 'data-clarity-mask': 'true', style: 'grid-row:2 / span 2;grid-column:2 / span 2' },
       h('p', { class: 'sj-cap sj-muted', text: '자미두수 명반' }),
       h('p', { class: 'sj-zw-cbig', text: c.juName }),
       h('p', { text: `음력 ${lb.y}년 ${lb.leap ? '윤' : ''}${lb.m}월 ${lb.d}일 ${S.BR_K[c.hb]}시` }),
@@ -1062,6 +1065,8 @@
   });
 
 
+  if (window.CLARITY_ID) { const n = $('#sj-clarity-note'); if (n) n.hidden = false; }
+
   /* 스크롤 등장: 카드가 화면에 들어올 때 한 번 아래에서 떠오른다 */
   (() => {
     if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -1124,6 +1129,7 @@
   $$('.sj-nav a, #hero-minis').forEach((n) => n.addEventListener('click', (e) => {
     const link = e.target.closest('a[href^="#"]');
     if (!link) return;
+    window.sjTrack(`nav_${link.getAttribute('href').slice(1)}`);
     const el = document.getElementById(link.getAttribute('href').slice(1));
     if (!el) return;
     e.preventDefault();

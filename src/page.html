@@ -624,6 +624,19 @@ img, svg, canvas { max-width: 100%; }
 .sj-du-cell.on { background: linear-gradient(180deg, rgba(251,231,161,.22), rgba(233,189,82,.1)); border-color: var(--sj-gold); box-shadow: 0 0 18px -6px rgba(233,189,82,.6); }
 @media (max-width: 40rem) { .sj-du { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 </style>
+<script>
+/* Microsoft Clarity — CLARITY_ID에 프로젝트 ID를 넣으면 켜진다(비워 두면 아무것도 불러오지 않음) */
+window.CLARITY_ID = '';
+if (window.CLARITY_ID) {
+  (function (c, l, a, r, i, t, y) {
+    c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+    t = l.createElement(r); t.async = 1; t.src = 'https://www.clarity.ms/tag/' + i;
+    y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+  })(window, document, 'clarity', 'script', window.CLARITY_ID);
+}
+/* 사용 이벤트 기록(Clarity가 꺼져 있으면 아무 일도 하지 않음) */
+window.sjTrack = function (name) { try { if (window.CLARITY_ID && window.clarity) window.clarity('event', name); } catch (e) { /* 무시 */ } };
+</script>
 </head>
 <body>
 <div id="dash-root">
@@ -634,7 +647,7 @@ img, svg, canvas { max-width: 100%; }
     <p class="sj-lead" id="sj-lead">내 정보를 한 번 입력해 두면, 날짜만 골라 그날의 운세와 하루 리듬을 볼 수 있어요.</p>
   </header>
 
-  <section class="sj-card sj-profile" id="profile" aria-label="내 정보">
+  <section class="sj-card sj-profile" id="profile" aria-label="내 정보" data-clarity-mask="true">
     <div class="sj-pf-sum">
       <div class="sj-pf-who">
         <span class="sj-pf-badge none" id="pf-badge">?</span>
@@ -775,7 +788,7 @@ img, svg, canvas { max-width: 100%; }
         <div class="sj-card sj-sec" id="natal-pillars" data-source="terms">
           <h3 class="sj-sec-title">네 기둥</h3>
           <div class="sj-pillars" id="pillars"></div>
-          <div class="sj-meta" id="natal-meta"></div>
+          <div class="sj-meta" id="natal-meta" data-clarity-mask="true"></div>
         </div>
         <div class="sj-card sj-sec" id="natal-elements">
           <h3 class="sj-sec-title">오행 분포</h3>
@@ -820,6 +833,6 @@ img, svg, canvas { max-width: 100%; }
     </div>
   </div>
 
-<p class="sj-foot">입력한 생년월일과 기록은 이 브라우저에만 저장되고 다른 곳으로 보내지지 않아요. 사주·자미두수 계산과 풀이는 재미와 참고용이며, 주식운은 투자 판단의 근거가 아닙니다.</p>
+<p class="sj-foot">입력한 생년월일과 기록은 이 브라우저에만 저장되고 다른 곳으로 보내지지 않아요.<span id="sj-clarity-note" hidden> 서비스 개선을 위해 Microsoft Clarity로 익명 이용 기록(클릭·스크롤)을 수집하며, 생년월일 등 입력 정보는 가려서 수집하지 않아요.</span> 사주·자미두수 계산과 풀이는 재미와 참고용이며, 주식운은 투자 판단의 근거가 아닙니다.</p>
 </div>
 </div>
