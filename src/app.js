@@ -484,6 +484,20 @@
     $('#sj-lead').textContent = `${longDate(p.date)}의 종합 운세 지수는 ${overall}점입니다. ${dy.sip}의 날로, ${dy.mix >= 0.2 ? '내게 필요한 기운이 들어와 흐름이 좋습니다' : dy.mix > -0.2 ? '큰 굴곡 없이 무난한 흐름입니다' : '기운이 엇갈려 신중함이 필요한 흐름입니다'}.`;
   }
 
+  /* 요소 맨 위를 고정 바(데스크톱 메뉴·모바일 탭) 바로 아래로 스크롤. scroll-margin을 무시하는 브라우저도 같게 동작 */
+  const stickyBottom = () => {
+    const bar = [...document.querySelectorAll('.sj-tabs, .sj-result > .sj-nav')].find((x) => x.offsetParent !== null && getComputedStyle(x).display !== 'none');
+    return bar ? Math.round(parseFloat(getComputedStyle(bar).top) || 8) + bar.offsetHeight + 12 : 12;
+  };
+  const scrollToEl = (el) => {
+    if (!el) return;
+    // 등장 애니메이션의 transform에 흔들리지 않게 offsetTop 사슬로 문서 위치를 잰다
+    let docTop = 0;
+    for (let n = el; n; n = n.offsetParent) docTop += n.offsetTop;
+    const y = docTop - stickyBottom();
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+  };
+  window.sjScrollToEl = scrollToEl;
   const foldState = {};
   const isMobile = () => window.matchMedia('(max-width: 40rem)').matches;
 
@@ -523,7 +537,7 @@
         foldBtn.textContent = next ? '접기 ▴' : '자세히 보기 ▾'; foldBtn.setAttribute('aria-expanded', String(next));
         window.sjTrack(`fold_${c.code}_${next ? 'open' : 'close'}`);
         // 펼치든 접든 카드 맨 위가 고정 메뉴 바로 아래에 오도록
-        card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        scrollToEl(card);
       });
       card.classList.toggle('sj-fold', foldable);
       if (foldable) card.dataset.open = String(open);
@@ -1089,7 +1103,8 @@
   $$('[data-tab-btn]').forEach((b) => b.addEventListener('click', () => {
     const t = b.dataset.tabBtn;
     const result = $('#sj-result');
-    const pin = () => window.scrollTo({ top: result.getBoundingClientRect().top + window.scrollY - 8, behavior: 'smooth' });
+    // 누른 탭의 첫 콘텐츠(오늘 운세는 종합 운세 카드) 맨 위가 탭 바 바로 아래에 오도록
+    const pin = () => requestAnimationFrame(() => scrollToEl(result.querySelector(`[data-pane="${t}"]`)));
     if (result.dataset.tab === t) { pin(); return; }
     result.dataset.tab = t;
     $$('[data-tab-btn]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
@@ -1176,6 +1191,6 @@
     const el = document.getElementById(link.getAttribute('href').slice(1));
     if (!el) return;
     e.preventDefault();
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToEl(el);
   }));
 })();
