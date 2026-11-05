@@ -484,6 +484,9 @@
     $('#sj-lead').textContent = `${longDate(p.date)}의 종합 운세 지수는 ${overall}점입니다. ${dy.sip}의 날로, ${dy.mix >= 0.2 ? '내게 필요한 기운이 들어와 흐름이 좋습니다' : dy.mix > -0.2 ? '큰 굴곡 없이 무난한 흐름입니다' : '기운이 엇갈려 신중함이 필요한 흐름입니다'}.`;
   }
 
+  const foldState = {};
+  const isMobile = () => window.matchMedia('(max-width: 40rem)').matches;
+
   function drawFortunes(p, dy, scores, data, zi, remain) {
     const gcode = p.gender === '여' ? 'love-f' : 'love-m';
     CATS.forEach((c, i) => {
@@ -509,11 +512,27 @@
           h('div', {}, h('span', { class: 'k', text: '주의' }), cite('span', 'fortunes', '주의', `id=${id}`, row ? row['주의'] : '')),
           h('div', {}, h('span', { class: 'k', text: '조언' }), cite('span', 'fortunes', '조언', `id=${id}`, row ? row['조언'] : ''))));
       if (c.code === 'stock') side.append(h('p', { class: 'sj-cap sj-muted', text: '재미로 보는 운세예요. 실제 투자 판단의 근거로 쓰지 마세요.' }));
+      const foldable = c.code !== 'total';
+      const open = foldable ? (c.code in foldState ? foldState[c.code] : !isMobile()) : true;
+      const firstSentence = String(row ? row['내용'] : '').split(/(?<=[.!?요다])\s/)[0];
+      const peek = foldable ? h('p', { class: 'sj-fc-peek' }, h('b', { text: row ? row['키워드'] : '' }), ' — ', firstSentence) : null;
+      const foldBtn = foldable ? h('button', { type: 'button', class: 'sj-fold-btn', 'aria-expanded': String(open), text: open ? '접기 ▴' : '자세히 보기 ▾' }) : null;
+      if (foldBtn) foldBtn.addEventListener('click', () => {
+        const next = card.dataset.open !== 'true';
+        foldState[c.code] = next; card.dataset.open = String(next);
+        foldBtn.textContent = next ? '접기 ▴' : '자세히 보기 ▾'; foldBtn.setAttribute('aria-expanded', String(next));
+        window.sjTrack(`fold_${c.code}_${next ? 'open' : 'close'}`);
+        if (!next && card.getBoundingClientRect().top < 0) card.scrollIntoView({ block: 'start' });
+      });
+      card.classList.toggle('sj-fold', foldable);
+      if (foldable) card.dataset.open = String(open);
       card.replaceChildren(
         h('div', { class: 'sj-fc-head' },
           h(c.code === 'total' ? 'h2' : 'h3', {}, h('span', { class: 'o', text: `0${i + 1}` }), c.name),
           h('div', { class: 'sj-score', 'aria-label': `${c.name} ${scores[i]}점, 5점 만점` }, stars(scores[i]), h('b', { text: scores[i].toFixed(1) }), h('span', { class: 'sj-cap sj-muted', text: zi ? `/ 5 · 사주 ${zi.saju[i].toFixed(1)} · 자미 ${zi.scores[i].toFixed(1)}` : '/ 5' }))),
-        h('div', { class: 'sj-fc-body' }, main, side));
+        peek,
+        h('div', { class: 'sj-fc-body' }, main, side),
+        foldBtn);
     });
   }
 
@@ -1064,6 +1083,28 @@
     }
   });
 
+
+  /* 모바일 탭: 오늘 운세 / 하루 리듬 / 나의 사주 */
+  $$('[data-tab-btn]').forEach((b) => b.addEventListener('click', () => {
+    const t = b.dataset.tabBtn;
+    const result = $('#sj-result');
+    if (result.dataset.tab === t) return;
+    result.dataset.tab = t;
+    $$('[data-tab-btn]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+    window.sjTrack(`tab_${t}`);
+    const top = result.getBoundingClientRect().top + window.scrollY - 8;
+    if (window.scrollY > top) window.scrollTo({ top });
+    if (t === 'rhythm' && rhythmModel) drawAllRhythm();
+    if (window.sjRimUpdate) window.sjRimUpdate();
+  }));
+  $('#rh-more').addEventListener('click', () => {
+    const box = $('#rh-total');
+    const open = !box.classList.contains('rh-open');
+    box.classList.toggle('rh-open', open);
+    $('#rh-more').setAttribute('aria-expanded', String(open));
+    $('#rh-more').textContent = open ? '구간별 접기' : '구간별 자세히 보기';
+    window.sjTrack(open ? 'rhythm_detail_open' : 'rhythm_detail_close');
+  });
 
   if (window.CLARITY_ID) { const n = $('#sj-clarity-note'); if (n) n.hidden = false; }
 

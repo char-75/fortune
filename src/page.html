@@ -623,6 +623,31 @@ img, svg, canvas { max-width: 100%; }
 .sj-du-cell .sj-role { font-size: 11px !important; padding: 0 5px; }
 .sj-du-cell.on { background: linear-gradient(180deg, rgba(251,231,161,.22), rgba(233,189,82,.1)); border-color: var(--sj-gold); box-shadow: 0 0 18px -6px rgba(233,189,82,.6); }
 @media (max-width: 40rem) { .sj-du { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+/* ===== 모바일 길이 줄이기: 탭 · 접는 카드 · 리듬 구간 ===== */
+.sj-tabs { display: none; }
+.sj-rh-more { display: none; }
+.sj-fc-peek { display: none; }
+.sj-fold-btn { justify-self: start; border-radius: 12px; padding: 8px 16px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: var(--color-fg); font-size: 15px !important; cursor: pointer; }
+.sj-fold-btn:hover { border-color: var(--sj-gold); color: var(--sj-gold-hi); }
+.sj-fold[data-open="false"] > .sj-fc-body { display: none; }
+.sj-fold[data-open="false"] > .sj-fc-peek { display: block; }
+.sj-fc-peek { color: #ece7dd; line-height: 1.7; }
+.sj-fc-peek b { color: var(--sj-gold-hi); }
+@media (max-width: 40rem) {
+  .sj-result > .sj-nav { display: none !important; }
+  .sj-tabs {
+    display: flex; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 8px); z-index: 30; gap: 4px; padding: 6px;
+    border-radius: 16px; background: rgba(14,12,9,.92); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 12px 30px -12px rgba(0,0,0,.8);
+  }
+  .sj-tabs button { flex: 1; min-height: 44px; border: 0; border-radius: 11px; background: transparent; color: var(--color-fg); font-weight: 600; font-size: 16px !important; cursor: pointer; }
+  .sj-tabs button[aria-selected="true"] { background: linear-gradient(180deg, var(--sj-gold-hi), var(--sj-gold)); color: #2c1d03; }
+  #sj-result[data-tab="fortune"] [data-pane]:not([data-pane="fortune"]),
+  #sj-result[data-tab="rhythm"] [data-pane]:not([data-pane="rhythm"]),
+  #sj-result[data-tab="saju"] [data-pane]:not([data-pane="saju"]) { display: none !important; }
+  .sj-rh-more { display: block; justify-self: start; }
+  #rh-total:not(.rh-open) #rh-blocks { display: none; }
+}
 </style>
 <script>
 /* Microsoft Clarity — CLARITY_ID에 프로젝트 ID를 넣으면 켜진다(비워 두면 아무것도 불러오지 않음) */
@@ -717,12 +742,17 @@ window.sjTrack = function (name) { try { if (window.CLARITY_ID && window.clarity
 
   <div class="sj-empty" id="sj-empty">위의 내 정보에 생년월일을 입력하면 운세가 나타납니다.</div>
 
-  <div class="sj-result" id="sj-result" hidden>
+  <div class="sj-result" id="sj-result" data-tab="fortune" hidden>
+    <div class="sj-tabs" role="tablist" aria-label="운세 보기">
+      <button type="button" role="tab" data-tab-btn="fortune" aria-selected="true">오늘 운세</button>
+      <button type="button" role="tab" data-tab-btn="rhythm" aria-selected="false">하루 리듬</button>
+      <button type="button" role="tab" data-tab-btn="saju" aria-selected="false">나의 사주</button>
+    </div>
     <nav class="sj-nav" aria-label="바로가기">
       <a href="#today">종합 운세</a><a href="#f-total">총운</a><a href="#fortunes">분야별 운세</a><a href="#rhythm">하루 리듬</a><a href="#natal">나의 사주</a><a href="#ziwei">자미두수 명반</a>
     </nav>
 
-    <section class="sj-card sj-hero sj-sec" id="today">
+    <section class="sj-card sj-hero sj-sec" id="today" data-pane="fortune">
       <div class="sj-hero-top">
         <div class="sj-total">
           <span class="sj-cap sj-muted">종합 운세 지수</span>
@@ -741,9 +771,9 @@ window.sjTrack = function (name) { try { if (window.CLARITY_ID && window.clarity
       </div>
     </section>
 
-    <article class="sj-card sj-fc sj-fc-wide sj-sec" id="f-total" data-cat="total"></article>
+    <article class="sj-card sj-fc sj-fc-wide sj-sec" id="f-total" data-pane="fortune" data-cat="total"></article>
 
-    <section class="sj-sec" id="fortunes">
+    <section class="sj-sec" id="fortunes" data-pane="fortune">
       <h2 class="sj-sec-title">분야별 운세</h2>
       <div class="sj-two">
         <article class="sj-card sj-fc" id="f-money" data-cat="money"></article>
@@ -754,7 +784,7 @@ window.sjTrack = function (name) { try { if (window.CLARITY_ID && window.clarity
       </div>
     </section>
 
-    <section class="sj-sec sj-rh-sec" id="rhythm">
+    <section class="sj-sec sj-rh-sec" id="rhythm" data-pane="rhythm">
       <div class="sj-card sj-sec" id="rh-total">
         <div class="sj-rh-top">
           <div>
@@ -769,6 +799,7 @@ window.sjTrack = function (name) { try { if (window.CLARITY_ID && window.clarity
         </div>
         <div class="sj-chart" id="rh-chart" data-source="rhythm"></div>
         <p class="sj-rh-msg" id="rh-msg"></p>
+        <button type="button" class="sj-ctl sj-rh-more" id="rh-more" aria-expanded="false" aria-controls="rh-blocks">구간별 자세히 보기</button>
         <div class="sj-blocks" id="rh-blocks"></div>
       </div>
       <h3 class="sj-sec-title" style="margin-top: var(--cds-gap-sm)">분야별 리듬</h3>
@@ -782,7 +813,7 @@ window.sjTrack = function (name) { try { if (window.CLARITY_ID && window.clarity
       </div>
     </section>
 
-    <section class="sj-sec" id="natal">
+    <section class="sj-sec" id="natal" data-pane="saju">
       <h2 class="sj-sec-title">나의 사주 원국</h2>
       <div class="sj-two">
         <div class="sj-card sj-sec" id="natal-pillars" data-source="terms">
@@ -810,7 +841,7 @@ window.sjTrack = function (name) { try { if (window.CLARITY_ID && window.clarity
       </div>
     </section>
 
-    <section class="sj-card sj-sec" id="ziwei">
+    <section class="sj-card sj-sec" id="ziwei" data-pane="saju">
       <div class="sj-rh-top">
         <div>
           <h2 class="sj-sec-title">자미두수 명반</h2>
@@ -824,7 +855,7 @@ window.sjTrack = function (name) { try { if (window.CLARITY_ID && window.clarity
       </div>
     </section>
 
-    <div class="sj-method" id="method">
+    <div class="sj-method" id="method" data-pane="saju">
       <p><b>풀이 방법</b> — 한국천문연구원 방식(한국 표준시)으로 계산한 절기와 음력 표를 바탕으로 연주(입춘 기준)·월주(절입 시각 기준)·일주·시주를 세웁니다. 태어난 시간은 서울 경도를 고려해 30분 늦춘 시진 경계(자시 23:30~01:30)를 쓰고, 23:30 이후 출생은 다음 날 일주로 봅니다. 표준시가 UTC+8:30이던 시기(1908~1911년, 1954~1961년)는 경계를 늦추지 않고, 서머타임 기간(1948~1951년, 1955~1960년, 1987~1988년 여름) 출생은 입력한 시각에서 1시간을 자동으로 뺍니다.</p>
       <p>강약은 여덟 글자의 오행을 세되, 지지는 지장간(여기·중기·정기) 비중대로 나눠 세고 월지에 가중치를 둡니다. 용신은 강약으로 정하는 억부법에, 겨울·여름생처럼 계절이 치우친 사주는 조후(겨울엔 화, 여름엔 수)를 함께 반영해 정합니다. 대운은 양남음녀 순행·음남양녀 역행으로, 출생에서 다음(또는 이전) 절입까지 날수를 3으로 나눠 시작 나이를 정합니다.</p>
       <p>분야별 점수는 그날 천간의 십성에 따른 기본 점수에, 그날 기운과 큰 흐름(대운 45%·세운 30%·월운 25%)을 65:35로 합친 흐름이 용신·기신 중 무엇에 가까운지(±1점), 그날 지지가 원국 지지와 합·충·삼합·형·해·파를 이루는지(±0.5점)를 더해 0.5점 단위로 냅니다. 종합 운세 지수는 여섯 분야 평균을 100점 만점으로 바꾼 값입니다.</p>
