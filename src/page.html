@@ -652,6 +652,28 @@ img, svg, canvas { max-width: 100%; }
 /* 고정 메뉴·탭 아래로 콘텐츠 맨 위가 오도록 스크롤 여백 */
 .sj-result [id], .sj-result .sj-fc { scroll-margin-top: 96px; }
 @media (max-width: 40rem) { .sj-result [id], .sj-result .sj-fc { scroll-margin-top: 80px; } }
+
+/* ===== Clarity 1차 개선(2026-11-07): 모바일 첫 화면 압축 ===== */
+@media (max-width: 40rem) {
+  .sj-title { font-size: 30px !important; }
+  .sj-lead { font-size: 15.5px !important; line-height: 1.55 !important; }
+  .sj-head { gap: 6px; }
+  #profile .sj-pf-badge { width: 2.25rem; height: 2.25rem; font-size: 16px; }
+  #profile:has(.sj-pf-form[hidden]) #pf-detail { display: none; }
+  #profile:has(.sj-pf-form[hidden]) { padding-top: 12px !important; padding-bottom: 12px !important; }
+  #profile #pf-title { font-size: 15.5px; }
+  /* 날짜: 입력칸 대신 달력 버튼만, ‹ › 오늘과 한 줄로 */
+  .sj-dt-ctl { flex-wrap: nowrap !important; }
+  .sj-dt-ctl .dp { order: 0 !important; flex: 0 0 auto !important; }
+  .sj-dt-ctl .dp .dp-input { display: none; }
+  .sj-dt-ctl .dp .dp-btn { border-left: 0; width: 3rem; }
+  .sj-dt-ctl:has(.dp-pop:not([hidden])) { flex-wrap: wrap !important; }
+  .sj-dt-ctl .dp:has(.dp-pop:not([hidden])) { flex: 1 1 100% !important; order: 5 !important; }
+  .sj-dt-ctl .dp:has(.dp-pop:not([hidden])) .dp-input { display: block; }
+  .sj-datecard { gap: 10px !important; }
+}
+/* 접힌 카드는 어디를 눌러도 펼쳐진다 */
+.sj-fold[data-open="false"] { cursor: pointer; }
 </style>
 <script>
 /* Microsoft Clarity — CLARITY_ID에 프로젝트 ID를 넣으면 켜진다(비워 두면 아무것도 불러오지 않음) */

@@ -531,6 +531,11 @@
       const firstSentence = String(row ? row['내용'] : '').split(/(?<=[.!?요다])\s/)[0];
       const peek = foldable ? h('p', { class: 'sj-fc-peek' }, h('b', { text: row ? row['키워드'] : '' }), ' — ', firstSentence) : null;
       const foldBtn = foldable ? h('button', { type: 'button', class: 'sj-fold-btn', 'aria-expanded': String(open), text: open ? '접기 ▴' : '자세히 보기 ▾' }) : null;
+      if (foldBtn) card.onclick = (e) => {
+        // 접힌 카드는 버튼이 아닌 곳(제목·점수·요약)을 눌러도 펼친다 (Clarity 헛클릭 대응)
+        if (card.dataset.open !== 'false' || e.target.closest('button, a')) return;
+        foldBtn.click();
+      };
       if (foldBtn) foldBtn.addEventListener('click', () => {
         const next = card.dataset.open !== 'true';
         foldState[c.code] = next; card.dataset.open = String(next);
