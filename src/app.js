@@ -286,6 +286,7 @@
     { code: 'work', name: '직장운', param: 'rhythmWork' },
   ];
   let rhythmModel = null;
+  let heroAdvice = '';
   let drag = null; // { code, edits }
   const editsFor = (code) => {
     if (drag && drag.code === code) return drag.edits;
@@ -460,6 +461,8 @@
   }
 
   function drawHero(p, dy, scores, overall, data, parts2, remain) {
+    const advRow = rowById(data.fortunes, `s${dy.sipNo}-total`);
+    heroAdvice = advRow ? advRow['조언'] : '';
     $('#hero-score').replaceChildren(String(overall), h('small', { text: '/ 100' }));
     $('#hero-split').textContent = parts2.zw === null ? `사주 ${parts2.saju} · 자미두수는 태어난 시간 필요` : `사주 ${parts2.saju} · 자미두수 ${parts2.zw}`;
     $('#hero-date').textContent = `${longDate(p.date)} · ${S.ganjiK(dy.idx)}(${S.ganjiH(dy.idx)})일`;
@@ -825,6 +828,20 @@
       const pk = peakOf(tot.list), lw = lowOf(tot.list);
       msg.textContent = `이날은 ${pk.from}–${pk.to}시에 기운이 가장 높고(${Math.round(pk.value)}), ${lw.from}–${lw.to}시에 가장 낮아요(${Math.round(lw.value)}). 중요한 일은 높은 시간대에, 휴식과 정리는 낮은 시간대에 배치해 보세요.`;
     }
+    // 종합 운세 '한눈에': 좋은 시간·조심할 시간·장중 주식 시간·오늘 한마디 (퍼소나: 1분 안에 확인하는 사람)
+    {
+      const hourNow = new Date().getHours();
+      const pool = isToday ? tot.list.filter((d) => d.to > hourNow) : tot.list;
+      const use = pool.length ? pool : tot.list;
+      const g = peakOf(use), w = lowOf(use);
+      const stk = all.stock ? all.stock.list.filter((d) => d.i === 2 || d.i === 3) : [];
+      const sb = stk.length ? peakOf(stk) : null;
+      $('#hero-glance').replaceChildren(
+        h('span', { class: 'good' }, h('b', { text: isToday && pool.length < tot.list.length ? '남은 시간 중 좋은 때' : '좋은 시간' }), `${g.from}–${g.to}시`),
+        h('span', { class: 'warn' }, h('b', { text: '조심할 시간' }), `${w.from}–${w.to}시`),
+        sb ? h('span', {}, h('b', { text: '주식 장중' }), `${sb.from}–${sb.to}시가 유리`) : null,
+        heroAdvice ? h('p', { class: 'sj-glance-tip', text: `오늘 한마디 · ${heroAdvice}` }) : null);
+    }
     $('#rh-blocks').replaceChildren(...tot.list.map((d) => {
       const lv = LEVEL(d.value);
       const rid = `b${d.i}-${lv}`;
@@ -855,7 +872,9 @@
       const box = h('div', { class: 'sj-chart', 'data-source': 'rhythm' });
       card.replaceChildren(
         h('div', { class: 'sj-rsub-head' }, h('h3', {}, c.name, ' ', h('span', { class: 'sj-cap sj-muted', text: `하루 ${lastScores[k + 1].toFixed(1)}` }), ' ', remainChip(rem, lastScores[k + 1])),
-          h('span', { class: 'sj-cap sj-muted', text: `${isToday ? '남은 시간 중 ' : ''}최고 ${pk.from}–${pk.to}시 · ${Math.round(pk.value)}` })),
+          h('span', { class: 'sj-cap sj-muted', text: c.code === 'stock'
+            ? (() => { const mk = adj.list.filter((d) => d.i === 2 || d.i === 3); const b2 = peakOf(mk); return `장중 유리 ${b2.from}–${b2.to}시 · ${Math.round(b2.value)} (하루 최고 ${pk.from}–${pk.to}시)`; })()
+            : `${isToday ? '남은 시간 중 ' : ''}최고 ${pk.from}–${pk.to}시 · ${Math.round(pk.value)}` })),
         box,
         h('p', {}, h('span', { class: `sj-lv ${lv === 0 ? 'hi' : lv === 2 ? 'lo' : ''}` }, cite('span', 'rhythm', '수준', `id=c-${c.code}-${lv}`, tipRow ? tipRow['수준'] : '')), cite('span', 'rhythm', '문구', `id=c-${c.code}-${lv}`, tipRow ? tipRow['문구'] : '')),
         own ? h('p', { class: 'sj-muted', text: `직접 기록한 값과 예측의 차이 ${Math.round(adj.dev) > 0 ? '+' : ''}${Math.round(adj.dev)}점을 이후 시간대에 반영했어요.` }) : null);
@@ -1196,6 +1215,9 @@
     const el = document.getElementById(link.getAttribute('href').slice(1));
     if (!el) return;
     e.preventDefault();
+    // 미니 카드로 들어온 분야는 펼친 상태로 보여 준다 (퍼소나: 주식운만 보러 온 사람)
+    const fb = el.dataset.open === 'false' ? el.querySelector('.sj-fold-btn') : null;
+    if (fb) { fb.click(); return; }
     scrollToEl(el);
   }));
 })();

@@ -674,6 +674,21 @@ img, svg, canvas { max-width: 100%; }
 }
 /* 접힌 카드는 어디를 눌러도 펼쳐진다 */
 .sj-fold[data-open="false"] { cursor: pointer; }
+
+/* ===== 퍼소나 점검 1차 개선(2026-11-11) ===== */
+.sj-glance { display: flex; flex-wrap: wrap; gap: 8px; }
+.sj-glance:empty { display: none; }
+.sj-glance span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); font-size: 15px; font-weight: 600; white-space: nowrap; }
+.sj-glance span b { font-weight: 500; color: rgba(244,241,234,.75); }
+.sj-glance .good { border-color: rgba(127,220,150,.5); }
+.sj-glance .warn { border-color: rgba(242,190,106,.55); }
+.sj-glance-tip { flex-basis: 100%; font-size: 15.5px; line-height: 1.6; color: #ece7dd; }
+@media (max-width: 40rem) {
+  .sj-seg, .sj-seg button, .dp-field, .sj .sj-ctl, .sj input[type=time] { min-height: 44px !important; }
+  .sj-check { min-height: 44px; font-size: 15px !important; gap: 8px; padding: 0 6px; }
+  .sj-check input { width: 20px; height: 20px; }
+  .sj-hint, .sj-lbl, .sj-pf-text span, .sj-foot { font-size: 14.5px !important; }
+}
 </style>
 <script>
 /* Microsoft Clarity — CLARITY_ID에 프로젝트 ID를 넣으면 켜진다(비워 두면 아무것도 불러오지 않음) */
@@ -787,6 +802,7 @@ window.sjTrack = function (name) { try { if (window.CLARITY_ID && window.clarity
         </div>
         <div class="sj-hero-text">
           <p class="sj-hero-date" id="hero-date"></p>
+          <div class="sj-glance" id="hero-glance" aria-label="오늘 한눈에"></div>
           <p id="hero-sum"></p>
         </div>
       </div>
