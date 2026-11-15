@@ -836,10 +836,15 @@
       const g = peakOf(use), w = lowOf(use);
       const stk = all.stock ? all.stock.list.filter((d) => d.i === 2 || d.i === 3) : [];
       const sb = stk.length ? peakOf(stk) : null;
+      // 밤처럼 남은 구간이 하나뿐이면 좋은 때·조심할 시간이 같은 구간으로 겹쳐 보이므로 한 칸으로 합친다
+      const single = g.from === w.from && g.to === w.to;
+      const stkPast = isToday && sb && sb.to <= hourNow; // 오늘 장중 유리 시간이 이미 지났으면 표시
       $('#hero-glance').replaceChildren(
-        h('span', { class: 'good' }, h('b', { text: isToday && pool.length < tot.list.length ? '남은 시간 중 좋은 때' : '좋은 시간' }), `${g.from}–${g.to}시`),
-        h('span', { class: 'warn' }, h('b', { text: '조심할 시간' }), `${w.from}–${w.to}시`),
-        sb ? h('span', {}, h('b', { text: '주식 장중' }), `${sb.from}–${sb.to}시가 유리`) : null,
+        single
+          ? h('span', {}, h('b', { text: '남은 시간대' }), `${g.from}–${g.to}시 · ${Math.round(g.value)}점`)
+          : h('span', { class: 'good' }, h('b', { text: isToday && pool.length < tot.list.length ? '남은 시간 중 좋은 때' : '좋은 시간' }), `${g.from}–${g.to}시`),
+        single ? null : h('span', { class: 'warn' }, h('b', { text: '조심할 시간' }), `${w.from}–${w.to}시`),
+        sb ? h('span', {}, h('b', { text: '주식 장중' }), `${sb.from}–${sb.to}시가 유리${stkPast ? ' (지난 시간)' : ''}`) : null,
         heroAdvice ? h('p', { class: 'sj-glance-tip', text: `오늘 한마디 · ${heroAdvice}` }) : null);
     }
     $('#rh-blocks').replaceChildren(...tot.list.map((d) => {
